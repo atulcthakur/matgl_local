@@ -16,6 +16,8 @@ from typing import TYPE_CHECKING, Literal
 import torch
 from torch import nn
 from torch_geometric.data import Batch, Data
+import transformer_engine.pytorch as te
+
 
 import matgl
 from matgl.config import DEFAULT_ELEMENTS
@@ -174,8 +176,10 @@ class TensorNet(MatGLModel):
             }
         )
 
-        self.out_norm = nn.LayerNorm(3 * units, dtype=dtype)
-        self.linear = nn.Linear(3 * units, units, dtype=dtype)
+        # self.out_norm = nn.LayerNorm(3 * units, dtype=dtype)
+        self.out_norm = te.LayerNorm(3 * units)
+        # self.linear = nn.Linear(3 * units, units, dtype=dtype)
+        self.linear = te.Linear(3 * units, units)
         if is_intensive:
             input_feats = units
             if readout_type == "weighted_atom":

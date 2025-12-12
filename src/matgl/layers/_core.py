@@ -8,6 +8,8 @@ from typing import TYPE_CHECKING
 import torch
 from torch import Tensor, nn
 from torch.nn import Linear, ModuleList
+import transformer_engine.pytorch as te
+from transformer_engine.pytorch import Linear
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
@@ -34,12 +36,14 @@ class MLP(nn.Module):
 
         for i, (in_dim, out_dim) in enumerate(itertools.pairwise(dims)):
             if i < self._depth - 1:
-                self.layers.append(Linear(in_dim, out_dim, bias=True))
+                # self.layers.append(Linear(in_dim, out_dim, bias=True))
+                self.layers.append(te.Linear(in_dim, out_dim, bias=True))
 
                 if activation is not None:
                     self.layers.append(activation)  # type: ignore
             else:
-                self.layers.append(Linear(in_dim, out_dim, bias=bias_last))
+                # self.layers.append(Linear(in_dim, out_dim, bias=bias_last))
+                self.layers.append(te.Linear(in_dim, out_dim, bias=bias_last))
 
                 if activation is not None and activate_last:
                     self.layers.append(activation)  # type: ignore
@@ -112,15 +116,20 @@ class GatedMLP(nn.Module):
         self.activate_last = activate_last
         for i, (in_dim, out_dim) in enumerate(zip(self.dims[:-1], self.dims[1:], strict=False)):
             if i < self._depth - 1:
-                self.layers.append(nn.Linear(in_dim, out_dim, bias=use_bias))
-                self.gates.append(nn.Linear(in_dim, out_dim, bias=use_bias))
+                # self.layers.append(nn.Linear(in_dim, out_dim, bias=use_bias))
+                # self.gates.append(nn.Linear(in_dim, out_dim, bias=use_bias))
+                self.layers.append(te.Linear(in_dim, out_dim, bias=use_bias))
+                self.gates.append(te.Linear(in_dim, out_dim, bias=use_bias))
+
                 self.layers.append(nn.SiLU())
                 self.gates.append(nn.SiLU())
             else:
-                self.layers.append(nn.Linear(in_dim, out_dim, bias=use_bias))
+                # self.layers.append(nn.Linear(in_dim, out_dim, bias=use_bias))
+                self.layers.append(te.Linear(in_dim, out_dim, bias=use_bias))
                 if self.activate_last:
                     self.layers.append(nn.SiLU())
-                self.gates.append(nn.Linear(in_dim, out_dim, bias=use_bias))
+                # self.gates.append(nn.Linear(in_dim, out_dim, bias=use_bias))
+                self.gates.append(te.Linear(in_dim, out_dim, bias=use_bias))
                 self.gates.append(nn.Sigmoid())
 
     def forward(self, inputs: Tensor) -> Tensor:

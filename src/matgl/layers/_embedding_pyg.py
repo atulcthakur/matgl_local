@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 import torch
 from torch import nn
 from torch_geometric.nn import MessagePassing
+import transformer_engine.pytorch as te
 
 import matgl
 from matgl.utils.cutoff import cosine_cutoff
@@ -50,20 +51,37 @@ class TensorEmbedding(MessagePassing):
         self.cutoff = cutoff
 
         # Initialize layers
-        self.distance_proj1 = nn.Linear(degree_rbf, units, dtype=dtype)
-        self.distance_proj2 = nn.Linear(degree_rbf, units, dtype=dtype)
-        self.distance_proj3 = nn.Linear(degree_rbf, units, dtype=dtype)
+        # self.distance_proj1 = nn.Linear(degree_rbf, units, dtype=dtype)
+        # self.distance_proj2 = nn.Linear(degree_rbf, units, dtype=dtype)
+        # self.distance_proj3 = nn.Linear(degree_rbf, units, dtype=dtype)
+        self.distance_proj1 = te.Linear(degree_rbf, units, dtype=dtype)
+        self.distance_proj2 = te.Linear(degree_rbf, units, dtype=dtype)
+        self.distance_proj3 = te.Linear(degree_rbf, units, dtype=dtype)
+
         self.emb = nn.Embedding(ntypes_node, units, dtype=dtype)
-        self.emb2 = nn.Linear(2 * units, units, dtype=dtype)
+
+        # self.emb2 = nn.Linear(2 * units, units, dtype=dtype)
+        self.emb2 = te.Linear(2 * units, units, dtype=dtype)
+        
         self.act = activation
-        self.linears_tensor = nn.ModuleList([nn.Linear(units, units, bias=False, dtype=dtype) for _ in range(3)])
+        # self.linears_tensor = nn.ModuleList([nn.Linear(units, units, bias=False, dtype=dtype) for _ in range(3)])
+        self.linears_tensor = nn.ModuleList([te.Linear(units, units, bias=False, dtype=dtype) for _ in range(3)])
+
+        # self.linears_scalar = nn.ModuleList(
+        #     [
+        #         nn.Linear(units, 2 * units, bias=True, dtype=dtype),
+        #         nn.Linear(2 * units, 3 * units, bias=True, dtype=dtype),
+        #     ]
+        # )
         self.linears_scalar = nn.ModuleList(
             [
-                nn.Linear(units, 2 * units, bias=True, dtype=dtype),
-                nn.Linear(2 * units, 3 * units, bias=True, dtype=dtype),
+                te.Linear(units, 2 * units, bias=True, dtype=dtype),
+                te.Linear(2 * units, 3 * units, bias=True, dtype=dtype),
             ]
         )
-        self.init_norm = nn.LayerNorm(units, dtype=dtype)
+
+        # self.init_norm = nn.LayerNorm(units, dtype=dtype)
+        self.init_norm = te.LayerNorm(units, dtype=dtype)
 
         self.reset_parameters()
 

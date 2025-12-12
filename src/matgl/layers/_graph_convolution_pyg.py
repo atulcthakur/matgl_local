@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 import torch
 import torch.nn as nn
 from torch_geometric.nn import MessagePassing
+import transformer_engine.pytorch as te
 
 from matgl.utils.cutoff import cosine_cutoff
 from matgl.utils.maths import (
@@ -48,14 +49,19 @@ class TensorNetInteraction(MessagePassing):
         # Scalar linear layers
         self.linears_scalar = nn.ModuleList(
             [
-                nn.Linear(num_rbf, units, bias=True, dtype=dtype),
-                nn.Linear(units, 2 * units, bias=True, dtype=dtype),
-                nn.Linear(2 * units, 3 * units, bias=True, dtype=dtype),
+                # nn.Linear(num_rbf, units, bias=True, dtype=dtype),
+                # nn.Linear(units, 2 * units, bias=True, dtype=dtype),
+                # nn.Linear(2 * units, 3 * units, bias=True, dtype=dtype),
+                te.Linear(num_rbf, units, bias=True, dtype=dtype),
+                te.Linear(units, 2 * units, bias=True, dtype=dtype),
+                te.Linear(2 * units, 3 * units, bias=True, dtype=dtype),
+
             ]
         )
 
         # Tensor linear layers (6 layers for scalar, skew, and traceless components)
-        self.linears_tensor = nn.ModuleList([nn.Linear(units, units, bias=False, dtype=dtype) for _ in range(6)])
+        # self.linears_tensor = nn.ModuleList([nn.Linear(units, units, bias=False, dtype=dtype) for _ in range(6)])
+        self.linears_tensor = nn.ModuleList([te.Linear(units, units, bias=False, dtype=dtype) for _ in range(6)])
 
         self.act = activation
         self.reset_parameters()

@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 import torch
 import torch.nn as nn
 from torch_geometric.nn import global_add_pool, global_max_pool, global_mean_pool
+import transformer_engine.pytorch as te
 
 from matgl.layers import MLP, GatedMLP
 
@@ -94,7 +95,8 @@ class WeightedAtomReadOut(nn.Module):
         self.dims = [in_feats, *dims]
         self.activation = activation
         self.mlp = MLP(dims=self.dims, activation=self.activation, activate_last=True)
-        self.weight = nn.Sequential(nn.Linear(in_feats, 1), nn.Sigmoid())
+        # self.weight = nn.Sequential(nn.Linear(in_feats, 1), nn.Sigmoid())
+        self.weight = nn.Sequential(te.Linear(in_feats, 1), nn.Sigmoid())
 
     def forward(self, graph: Data) -> torch.Tensor:
         """
