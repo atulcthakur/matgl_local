@@ -130,7 +130,7 @@ class Potential(nn.Module, IOMixIn):
         if self.calc_forces:
             g.pos.requires_grad_(True)
 
-        fp8_format = Format.HYBRID
+        fp8_format = Format.E4M3 # HYBRID
         fp8_recipe = DelayedScaling(fp8_format=fp8_format, amax_history_len=16, amax_compute_algo="max")
 
         with te.autocast(enabled=True, recipe=fp8_recipe):
