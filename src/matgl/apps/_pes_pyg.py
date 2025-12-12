@@ -8,6 +8,8 @@ import torch
 from torch import nn
 from torch.autograd import grad
 from torch_geometric.data import Batch, Data
+from transformer_engine.pytorch import te
+from transformer_engine.common.recipe import Format, DelayedScaling, MXFP8BlockScaling
 
 import matgl
 from matgl.layers._atom_ref_pyg import AtomRefPyG
@@ -128,7 +130,13 @@ class Potential(nn.Module, IOMixIn):
         if self.calc_forces:
             g.pos.requires_grad_(True)
 
-        total_energies = self.model(g=g, state_attr=state_attr, l_g=l_g)
+        fp8_format = Format.HYBRID
+        fp8_recipe = DelayedScaling(fp8_format=fp8_format, amax_history_len=16, amax_compute_algo="max")
+
+        with te.autocast(enabled=True, recipe=fp8_recipe):
+            total_energies = self.model(g=g, state_attr=state_attr, l_g=l_g)
+
+        # total_energies = self.model(g=g, state_attr=state_attr, l_g=l_g)
         total_energies = self.data_std * total_energies + self.data_mean
 
         if self.calc_repuls:
