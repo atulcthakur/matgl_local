@@ -57,7 +57,7 @@ jobs:
               "torchdata==0.8.0" \
               "dgl==2.4.0" \
               -f https://data.dgl.ai/wheels/torch-2.4/repo.html
-          uv pip install --no-deps pytest pytest-cov
+          uv pip install pytest pytest-cov
       - name: pytest
         run: |
           uv run --no-sync python -c "import dgl; print(dgl.__version__)"
