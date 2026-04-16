@@ -222,10 +222,14 @@ class TensorNetWrapper(nn.Module, BaseModelMixin):  # type: ignore[misc]
         if potential.element_refs is not None:
             element_refs = potential.element_refs.property_offset.clone()
 
+        data_mean = potential.data_mean
+        data_std = potential.data_std
+        assert isinstance(data_mean, torch.Tensor)
+        assert isinstance(data_std, torch.Tensor)
         return cls(
             model=potential.model,
-            data_mean=potential.data_mean.clone(),
-            data_std=potential.data_std.clone(),
+            data_mean=data_mean.clone(),
+            data_std=data_std.clone(),
             element_refs=element_refs,
             calc_repuls=getattr(potential, "calc_repuls", False),
         )
