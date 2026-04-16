@@ -174,6 +174,8 @@ class TensorNetWrapper(nn.Module, BaseModelMixin):  # type: ignore[misc]
             data_mean = torch.tensor(data_mean, dtype=torch.float32)
         if not isinstance(data_std, torch.Tensor):
             data_std = torch.tensor(data_std, dtype=torch.float32)
+        self.data_mean: torch.Tensor
+        self.data_std: torch.Tensor
         self.register_buffer("data_mean", data_mean)
         self.register_buffer("data_std", data_std)
 
@@ -193,6 +195,7 @@ class TensorNetWrapper(nn.Module, BaseModelMixin):  # type: ignore[misc]
         table = torch.full((max_z + 1,), -1, dtype=torch.long)
         for sym, idx in symbol_to_idx.items():
             table[Element(sym).Z] = idx
+        self._z_to_type: torch.Tensor
         self.register_buffer("_z_to_type", table, persistent=False)
 
     # ------------------------------------------------------------------
@@ -221,8 +224,8 @@ class TensorNetWrapper(nn.Module, BaseModelMixin):  # type: ignore[misc]
 
         return cls(
             model=potential.model,
-            data_mean=potential.data_mean.clone(),  # type: ignore[operator]
-            data_std=potential.data_std.clone(),  # type: ignore[operator]
+            data_mean=potential.data_mean.clone(),
+            data_std=potential.data_std.clone(),
             element_refs=element_refs,
             calc_repuls=getattr(potential, "calc_repuls", False),
         )
@@ -276,7 +279,7 @@ class TensorNetWrapper(nn.Module, BaseModelMixin):  # type: ignore[misc]
         device = data.positions.device
         B: int = data.num_graphs
 
-        node_type = self._z_to_type[data.atomic_numbers]  # type: ignore[index]
+        node_type = self._z_to_type[data.atomic_numbers]
 
         # nvalchemi (E, 2) -> TensorNet/PyG (2, E)
         edge_index = data.neighbor_list.T  # [2, E]
