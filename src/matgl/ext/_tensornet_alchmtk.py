@@ -148,12 +148,11 @@ class TensorNetWrapper(nn.Module, BaseModelMixin):  # type: ignore[misc]
         self.model = model
 
         # ZBL nuclear repulsion (fixed analytical potential)
+        self.repuls: NuclearRepulsionPyG | None = None  # type: ignore[name-defined]
         if calc_repuls:
             from matgl.layers._zbl_pyg import NuclearRepulsionPyG
 
             self.repuls = NuclearRepulsionPyG(float(model.cutoff))
-        else:
-            self.repuls = None
 
         self.model_config = ModelConfig(
             outputs=frozenset({"energy", "forces", "stress"}),
@@ -222,8 +221,8 @@ class TensorNetWrapper(nn.Module, BaseModelMixin):  # type: ignore[misc]
 
         return cls(
             model=potential.model,
-            data_mean=potential.data_mean.clone(),
-            data_std=potential.data_std.clone(),
+            data_mean=potential.data_mean.clone(),  # type: ignore[operator]
+            data_std=potential.data_std.clone(),  # type: ignore[operator]
             element_refs=element_refs,
             calc_repuls=getattr(potential, "calc_repuls", False),
         )
@@ -277,7 +276,7 @@ class TensorNetWrapper(nn.Module, BaseModelMixin):  # type: ignore[misc]
         device = data.positions.device
         B: int = data.num_graphs
 
-        node_type = self._z_to_type[data.atomic_numbers]
+        node_type = self._z_to_type[data.atomic_numbers]  # type: ignore[index]
 
         # nvalchemi (E, 2) -> TensorNet/PyG (2, E)
         edge_index = data.neighbor_list.T  # [2, E]
